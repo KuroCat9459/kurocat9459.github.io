@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>IIDX系统音频转化工具(SD92wav)详解 | KuroCat.site</title><meta name="author" content="KuroCat"><meta name="copyright" content="KuroCat"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="介绍:SD92WAVsd92wav（SD9 to WAV）是一个简单的转换器，可以将SD9文件转换为WAV。格式非常简单。它只是一个WAV文件，在文件前面添加了0x20（32字节）的附加数据。正因为如此，它简单到只需将最初的几个字节砍掉，就可以作为WAV文件正确读取。本文在github上的源码这一基础上,添加了python脚本，仅需要简单的电脑操作基础就可以完成一键转化。 介绍:关于sd9文件sd">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IIDX系统音频转化工具(SD92wav)详解">
+<meta property="og:url" content="http://example.com/posts/dcbc11a5.html">
+<meta property="og:site_name" content="KuroCat.site">
+<meta property="og:description" content="介绍:SD92WAVsd92wav（SD9 to WAV）是一个简单的转换器，可以将SD9文件转换为WAV。格式非常简单。它只是一个WAV文件，在文件前面添加了0x20（32字节）的附加数据。正因为如此，它简单到只需将最初的几个字节砍掉，就可以作为WAV文件正确读取。本文在github上的源码这一基础上,添加了python脚本，仅需要简单的电脑操作基础就可以完成一键转化。 介绍:关于sd9文件sd">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/bluearchive/823628.jpg">
+<meta property="article:published_time" content="2023-10-26T19:56:12.000Z">
+<meta property="article:modified_time" content="2023-10-26T12:45:07.804Z">
+<meta property="article:author" content="KuroCat">
+<meta property="article:tag" content="IIDX">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/bluearchive/823628.jpg"><link rel="shortcut icon" href="/img/neticon.png"><link rel="canonical" href="http://example.com/posts/dcbc11a5.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'IIDX系统音频转化工具(SD92wav)详解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2023-10-26 12:45:07'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css" media="defer" onload="this.media='all'"><script src="https://cdn.cbd.int/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js"></script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/bluearchive/823628.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="KuroCat.site"><span class="site-name">KuroCat.site</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">IIDX系统音频转化工具(SD92wav)详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-10-26T19:56:12.000Z" title="发表于 2023-10-26 19:56:12">2023-10-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-10-26T12:45:07.804Z" title="更新于 2023-10-26 12:45:07">2023-10-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%B5%84%E6%BA%90/">资源</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="IIDX系统音频转化工具(SD92wav)详解"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="介绍-SD92WAV"><a href="#介绍-SD92WAV" class="headerlink" title="介绍:SD92WAV"></a>介绍:SD92WAV</h1><p>sd92wav（SD9 to WAV）是一个简单的转换器，可以将SD9文件转换为WAV。格式非常简单。它只是一个WAV文件，在文件前面添加了0x20（32字节）的附加数据。正因为如此，它简单到只需将最初的几个字节砍掉，就可以作为WAV文件正确读取。本文在github上的源码这一基础上,添加了python脚本，仅需要简单的电脑操作基础就可以完成一键转化。<br></p>
+<h1 id="介绍-关于sd9文件"><a href="#介绍-关于sd9文件" class="headerlink" title="介绍:关于sd9文件"></a>介绍:关于sd9文件</h1><p>sd9文件通常在Beatmania IIDX游戏中(./data/sound/system/0(或者1))文件夹内。该项目测试的是Beatmania IIDX 20 Tricoro和Beatmania IIDX 21 SPADA。经笔者测试，30代依旧可以使用。<br></p>
+<h1 id="需要的库"><a href="#需要的库" class="headerlink" title="需要的库"></a>需要的库</h1><p>Python环境、shutil、os<br>建议下载anaconda一劳永逸。</p>
+<h1 id="Github上的cpp源代码"><a href="#Github上的cpp源代码" class="headerlink" title="Github上的cpp源代码"></a>Github上的cpp源代码</h1><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//SD9 to WAV Converter for Beatmania IIDX</span></span><br><span class="line"><span class="comment">//Converts SD9 files to WAV... by removing the first 0x20 bytes...</span></span><br><span class="line"><span class="comment">//Tested on IIDX 20 Tricoro and IIDX 21 SPADA</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//Usage: sd92wav.exe *.sd9 [*.wav]</span></span><br><span class="line"><span class="comment">//*.wav is optional. If omitted, &quot;.wav&quot; would be added to the original file.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//By @iDestyKK</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fstream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span> </span>&#123;</span><br><span class="line">	<span class="comment">//Get file data...</span></span><br><span class="line">	<span class="keyword">if</span> (argc == <span class="number">1</span> || argc &gt; <span class="number">3</span>) &#123;</span><br><span class="line">		cerr &lt;&lt; <span class="string">&quot;SD9 to WAV Converter for Beatmania IIDX by @iDestyKK\n&quot;</span>;</span><br><span class="line">		cerr &lt;&lt; <span class="string">&quot;Usage: &quot;</span> &lt;&lt; argv[<span class="number">0</span>] &lt;&lt; <span class="string">&quot; *.sd9 [*.wav]\n&quot;</span>;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;Converting...&quot;</span>;</span><br><span class="line"></span><br><span class="line">	string input = argv[<span class="number">1</span>];</span><br><span class="line">	string output;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (argc == <span class="number">2</span>) &#123;</span><br><span class="line">		<span class="comment">//We specified no output name, so just add to the original name.</span></span><br><span class="line">		output = input + <span class="string">&quot;.wav&quot;</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function">ifstream <span class="title">fp</span><span class="params">(input.c_str(), ios::binary)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">int</span> size;</span><br><span class="line"></span><br><span class="line">	<span class="type">char</span>* bytes;</span><br><span class="line">	fp.<span class="built_in">seekg</span>(<span class="number">0</span>, ios::end);</span><br><span class="line">	size = (<span class="type">int</span>)fp.<span class="built_in">tellg</span>() - <span class="number">0x20</span>;</span><br><span class="line"></span><br><span class="line">	fp.<span class="built_in">seekg</span>(<span class="number">0x20</span>, ios::beg);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//Create new array with the size of the file... - 0x20</span></span><br><span class="line">	bytes = <span class="keyword">new</span> <span class="type">char</span>[size];</span><br><span class="line"></span><br><span class="line">	<span class="comment">//Read bytes into file</span></span><br><span class="line">	fp.<span class="built_in">read</span>(bytes,size);</span><br><span class="line"></span><br><span class="line">	fp.<span class="built_in">close</span>();</span><br><span class="line"></span><br><span class="line">	<span class="comment">//Write to new file</span></span><br><span class="line">	<span class="function">ofstream <span class="title">op</span><span class="params">(output.c_str(), ios::binary)</span></span>;</span><br><span class="line">	op.<span class="built_in">write</span>(bytes, size);</span><br><span class="line">	op.<span class="built_in">close</span>();</span><br><span class="line"></span><br><span class="line">	<span class="comment">//Save the day</span></span><br><span class="line">	cout &lt;&lt; <span class="string">&quot; Done!\n&quot;</span>;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h1 id="脚本化处理"><a href="#脚本化处理" class="headerlink" title="脚本化处理"></a>脚本化处理</h1><h2 id="为什么要做脚本化？"><a href="#为什么要做脚本化？" class="headerlink" title="为什么要做脚本化？"></a>为什么要做脚本化？</h2><p>原本的c++程序不能把多个文件拖入后直接执行，只能一个一个转化，效率很低。多个文件拖入后，程序会把这多个sd9音频辨识成一个文件。<br>为了既能保证效率又不出bug，故使用python编写脚本。<br></p>
+<h2 id="脚本源码"><a href="#脚本源码" class="headerlink" title="脚本源码"></a>脚本源码</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#本文件用于将IIDX HDD中的System sd9文件转化为wav文件</span></span><br><span class="line"><span class="comment">#仅需要将data\sound\system中的sd9文件拖入input文件夹并且运行该脚本即可转换文件并且导出到output文件夹</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"></span><br><span class="line"><span class="comment">#转换sd9文件至wav</span></span><br><span class="line">f=os.listdir(<span class="string">&quot;./input&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> f:</span><br><span class="line">    cmd=<span class="string">&quot;convert.exe &quot;</span>+<span class="string">&quot;./input/&quot;</span>+i</span><br><span class="line">    os.system(cmd)</span><br><span class="line"></span><br><span class="line"><span class="comment">#筛选wav文件</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">find_files</span>(<span class="params">folder, extension</span>):</span><br><span class="line">    file_list = []</span><br><span class="line">    <span class="keyword">for</span> root, dirs, files <span class="keyword">in</span> os.walk(folder):</span><br><span class="line">        <span class="keyword">for</span> file <span class="keyword">in</span> files:</span><br><span class="line">            <span class="keyword">if</span> file.endswith(extension):</span><br><span class="line">                file_list.append(os.path.join(root, file))</span><br><span class="line">    <span class="keyword">return</span> file_list</span><br><span class="line"><span class="comment">#需要手动更改folder文件夹的实际路径为你放置的input文件夹</span></span><br><span class="line">folder = <span class="string">&#x27;./input&#x27;</span></span><br><span class="line">extension = <span class="string">&#x27;.wav&#x27;</span></span><br><span class="line">file_list = find_files(folder, extension)</span><br><span class="line"></span><br><span class="line"><span class="comment">#转移文件</span></span><br><span class="line"><span class="keyword">for</span> wav <span class="keyword">in</span> file_list:</span><br><span class="line">    shutil.move(wav, <span class="string">&quot;./output&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Already transformed: &quot;</span>+wav)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Done!&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h1 id="如何操作"><a href="#如何操作" class="headerlink" title="如何操作"></a>如何操作</h1><p>将需要导出的sd9文件放入input文件夹，运行python文件即可。<br>如果定位不到input/output文件夹，需要手动将路径改成实际路径。<br>文内c++源代码的文件已经进行过编译，无需您再手动编辑。<br></p>
+<h1 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h1><p>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/16t-FFZ98kEijC1kXuz7JUw?pwd=47vq">https://pan.baidu.com/s/16t-FFZ98kEijC1kXuz7JUw?pwd=47vq</a> <br> 提取码：47vq</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://ys.mihoyo.com/">KuroCat</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/iDestyKK/sd92wav">https://github.com/iDestyKK/sd92wav</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">部分代码参考至github上的sd9convert,点击上方“文章链接”查看源网站。</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/IIDX/">IIDX</a></div><div class="post_share"><div class="social-share" data-image="/img/bluearchive/823628.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/posts/4a17b156.html" title="建站完成"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">建站完成</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/7060451c.html" title="(转载)IIDX安装相关"><img class="cover" src="/img/bluearchive/306656.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-25</div><div class="title">(转载)IIDX安装相关</div></div></a></div><div><a href="/posts/582a12e7.html" title="IIDX相关资源下载"><img class="cover" src="/img/bluearchive/153632.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-25</div><div class="title">IIDX相关资源下载</div></div></a></div><div><a href="/posts/de8c43c1.html" title="十月iidx推分感想"><img class="cover" src="/img/bluearchive/38289.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-25</div><div class="title">十月iidx推分感想</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">KuroCat</div><div class="author-info__description">KuroCat的个人博客</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://space.bilibili.com/18672670"><i class="fab fa-github"></i><span>b站链接</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Don't fight the music anymore.</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D-SD92WAV"><span class="toc-number">1.</span> <span class="toc-text">介绍:SD92WAV</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D-%E5%85%B3%E4%BA%8Esd9%E6%96%87%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">介绍:关于sd9文件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E7%9A%84%E5%BA%93"><span class="toc-number">3.</span> <span class="toc-text">需要的库</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Github%E4%B8%8A%E7%9A%84cpp%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="toc-number">4.</span> <span class="toc-text">Github上的cpp源代码</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%84%9A%E6%9C%AC%E5%8C%96%E5%A4%84%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">脚本化处理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%81%9A%E8%84%9A%E6%9C%AC%E5%8C%96%EF%BC%9F"><span class="toc-number">5.1.</span> <span class="toc-text">为什么要做脚本化？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%84%9A%E6%9C%AC%E6%BA%90%E7%A0%81"><span class="toc-number">5.2.</span> <span class="toc-text">脚本源码</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E6%93%8D%E4%BD%9C"><span class="toc-number">6.</span> <span class="toc-text">如何操作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%93%BE%E6%8E%A5"><span class="toc-number">7.</span> <span class="toc-text">链接</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/dcbc11a5.html" title="IIDX系统音频转化工具(SD92wav)详解"><img src="/img/bluearchive/823628.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="IIDX系统音频转化工具(SD92wav)详解"/></a><div class="content"><a class="title" href="/posts/dcbc11a5.html" title="IIDX系统音频转化工具(SD92wav)详解">IIDX系统音频转化工具(SD92wav)详解</a><time datetime="2023-10-26T19:56:12.000Z" title="发表于 2023-10-26 19:56:12">2023-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/4a17b156.html" title="建站完成">建站完成</a><time datetime="2023-10-26T12:45:07.804Z" title="发表于 2023-10-26 12:45:07">2023-10-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/7060451c.html" title="(转载)IIDX安装相关"><img src="/img/bluearchive/306656.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="(转载)IIDX安装相关"/></a><div class="content"><a class="title" href="/posts/7060451c.html" title="(转载)IIDX安装相关">(转载)IIDX安装相关</a><time datetime="2023-10-25T21:34:01.000Z" title="发表于 2023-10-25 21:34:01">2023-10-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/b2228c40.html" title="东方游戏合集（不完整）"><img src="/img/bluearchive/129581.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="东方游戏合集（不完整）"/></a><div class="content"><a class="title" href="/posts/b2228c40.html" title="东方游戏合集（不完整）">东方游戏合集（不完整）</a><time datetime="2023-10-25T20:45:26.000Z" title="发表于 2023-10-25 20:45:26">2023-10-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/582a12e7.html" title="IIDX相关资源下载"><img src="/img/bluearchive/153632.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="IIDX相关资源下载"/></a><div class="content"><a class="title" href="/posts/582a12e7.html" title="IIDX相关资源下载">IIDX相关资源下载</a><time datetime="2023-10-25T20:11:57.000Z" title="发表于 2023-10-25 20:11:57">2023-10-25</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By KuroCat</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = 'c1dcda2d951447f4baa3c1116cf1003a';
+  var gaud_map_key = 'e2b04289e870b005374ee030148d64fd&s=rsv3';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><script async src="/js/ali_font.js"></script><!-- hexo injector body_end end --></body></html>
